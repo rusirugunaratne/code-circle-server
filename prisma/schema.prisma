@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  REPLY
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  username     String          @unique
+  passwordHash String
+  role         Role            @default(USER)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  profile      Profile?
+  snippets     Snippet[]
+  comments     Comment[]
+  likes        Like[]
+  notifications Notification[] @relation("Recipient")
+  actions      Notification[]  @relation("Actor")
+  refreshTokens RefreshToken[]
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  displayName String?
+  bio         String?
+  avatarUrl   String?
+  location    String?
+  headline    String?
+  techStack   String[]
+  githubUrl   String?
+  linkedinUrl String?
+  websiteUrl  String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Snippet {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  code        String     @db.Text
+  language    String
+  authorId    String
+  author      User       @relation(fields: [authorId], references: [id])
+  tags        Tag[]      @relation("SnippetTags")
+  comments    Comment[]
+  likes       Like[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([authorId])
+}
+
+model Tag {
+  id       String     @id @default(cuid())
+  name     String     @unique
+  snippets Snippet[]  @relation("SnippetTags")
+}
+
+model Comment {
+  id              String    @id @default(cuid())
+  content         String
+  authorId        String
+  snippetId       String
+  parentCommentId String?
+
+  author  User    @relation(fields: [authorId], references: [id])
+  snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+
+  parent  Comment?  @relation("Replies", fields: [parentCommentId], references: [id])
+  replies Comment[] @relation("Replies")
+
+  createdAt DateTime @default(now())
+
+  @@index([snippetId])
+  @@index([authorId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  snippetId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, snippetId])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  actorId     String
+  type        NotificationType
+  targetId    String
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  recipient User @relation("Recipient", fields: [recipientId], references: [id])
+  actor     User @relation("Actor", fields: [actorId], references: [id])
+
+  @@index([recipientId])
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  hashedToken String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revoked     Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
