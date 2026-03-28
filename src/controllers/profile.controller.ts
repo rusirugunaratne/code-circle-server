@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProfileService } from '../services/profile.service.js';
+import { UpdateProfileInput } from '../schemas/profile.schema.js';
 
 export const ProfileController = {
   async getProfile(req: Request, res: Response, next: NextFunction) {
@@ -11,7 +12,7 @@ export const ProfileController = {
     }
   },
 
-  async updateProfile(req: Request, res: Response, next: NextFunction) {
+  async updateProfile(req: Request<{}, {}, UpdateProfileInput>, res: Response, next: NextFunction) {
     try {
       if (!req.user) throw new Error('Unauthorized');
 

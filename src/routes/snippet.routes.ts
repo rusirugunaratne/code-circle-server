@@ -3,6 +3,9 @@ import { SnippetController } from '../controllers/snippet.controller.js';
 import { InteractionController } from '../controllers/interaction.controller.js';
 import { authGuard } from '../middlewares/auth.middleware.js';
 import { requirePermission } from '../middlewares/rbac.middleware.js';
+import { validate } from '../middlewares/validation.middleware.js';
+import { createSnippetSchema, getFeedSchema } from '../schemas/snippet.schema.js';
+import { commentSchema } from '../schemas/interaction.schema.js';
 
 const router = Router();
 
@@ -11,6 +14,7 @@ router.get(
   '/',
   authGuard,
   requirePermission('SNIPPET_READ'),
+  validate(getFeedSchema),
   SnippetController.getFeed
 );
 
@@ -21,6 +25,7 @@ router.post(
   '/',
   authGuard,
   requirePermission('SNIPPET_MANAGE_OWN'),
+  validate(createSnippetSchema),
   SnippetController.createSnippet
 );
 
@@ -34,6 +39,6 @@ router.delete(
 
 // Interactions on snippets
 router.post('/:id/like', authGuard, requirePermission('SNIPPET_READ'), InteractionController.toggleLike);
-router.post('/:id/comments', authGuard, requirePermission('SNIPPET_READ'), InteractionController.addComment);
+router.post('/:id/comments', authGuard, requirePermission('SNIPPET_READ'), validate(commentSchema), InteractionController.addComment);
 
 export default router;

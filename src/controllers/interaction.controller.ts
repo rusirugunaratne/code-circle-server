@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { InteractionService } from '../services/interaction.service.js';
+import { CommentInput } from '../schemas/interaction.schema.js';
 
 export const InteractionController = {
   async toggleLike(req: Request, res: Response, next: NextFunction) {
@@ -13,7 +14,7 @@ export const InteractionController = {
     }
   },
 
-  async addComment(req: Request, res: Response, next: NextFunction) {
+  async addComment(req: Request<{ id: string }, {}, CommentInput>, res: Response, next: NextFunction) {
     try {
       if (!req.user) throw new Error('Unauthorized');
 

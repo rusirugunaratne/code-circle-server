@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service.js';
 import { env } from '../config/env.js';
+import { RegisterInput, LoginInput } from '../schemas/auth.schema.js';
 
 export const AuthController = {
-  async register(req: Request, res: Response, next: NextFunction) {
+  async register(req: Request<{}, {}, RegisterInput>, res: Response, next: NextFunction) {
     try {
       const result = await AuthService.register(req.body);
       res.cookie('refreshToken', result.refreshToken, {
@@ -21,7 +22,7 @@ export const AuthController = {
     }
   },
 
-  async login(req: Request, res: Response, next: NextFunction) {
+  async login(req: Request<{}, {}, LoginInput>, res: Response, next: NextFunction) {
     try {
       const result = await AuthService.login(req.body);
       res.cookie('refreshToken', result.refreshToken, {

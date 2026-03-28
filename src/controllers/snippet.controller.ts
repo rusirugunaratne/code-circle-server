@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { SnippetService } from '../services/snippet.service.js';
+import { CreateSnippetInput } from '../schemas/snippet.schema.js';
 
 export const SnippetController = {
   async getFeed(req: Request, res: Response, next: NextFunction) {
@@ -27,7 +28,7 @@ export const SnippetController = {
     }
   },
 
-  async createSnippet(req: Request, res: Response, next: NextFunction) {
+  async createSnippet(req: Request<{}, {}, CreateSnippetInput>, res: Response, next: NextFunction) {
     try {
       if (!req.user) throw new Error('Unauthorized');
 
