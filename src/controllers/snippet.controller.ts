@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger.js';
 import { SnippetService } from '../services/snippet.service.js';
 import { CreateSnippetInput } from '../schemas/snippet.schema.js';
 
 export const SnippetController = {
   async getFeed(req: Request, res: Response, next: NextFunction) {
+    logger.debug({ query: req.query }, 'SnippetController.getFeed: Fetching feed');
     try {
       const { page, pageSize, tag, search, sort } = req.query;
       const snippets = await SnippetService.getFeed(
@@ -20,6 +22,7 @@ export const SnippetController = {
   },
 
   async getSnippet(req: Request, res: Response, next: NextFunction) {
+    logger.debug({ snippetId: req.params.id }, 'SnippetController.getSnippet: Fetching snippet');
     try {
       const snippet = await SnippetService.getSnippet(req.params.id);
       res.json(snippet);
@@ -29,6 +32,7 @@ export const SnippetController = {
   },
 
   async createSnippet(req: Request<{}, {}, CreateSnippetInput>, res: Response, next: NextFunction) {
+    logger.info({ userId: req.user?.id, title: req.body.title }, 'SnippetController.createSnippet: Creating snippet');
     try {
       if (!req.user) throw new Error('Unauthorized');
 
@@ -43,6 +47,7 @@ export const SnippetController = {
   },
 
   async deleteSnippet(req: Request, res: Response, next: NextFunction) {
+    logger.info({ snippetId: req.params.id, userId: req.user?.id }, 'SnippetController.deleteSnippet: Deleting snippet');
     try {
       if (!req.user) throw new Error('Unauthorized');
 

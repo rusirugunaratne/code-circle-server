@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger.js';
 import { InteractionService } from '../services/interaction.service.js';
 import { CommentInput } from '../schemas/interaction.schema.js';
 
 export const InteractionController = {
   async toggleLike(req: Request, res: Response, next: NextFunction) {
+    logger.debug({ snippetId: req.params.id, userId: req.user?.id }, 'InteractionController.toggleLike: Toggling like');
     try {
       if (!req.user) throw new Error('Unauthorized');
 
@@ -15,6 +17,7 @@ export const InteractionController = {
   },
 
   async addComment(req: Request<{ id: string }, {}, CommentInput>, res: Response, next: NextFunction) {
+    logger.info({ snippetId: req.params.id, userId: req.user?.id }, 'InteractionController.addComment: Adding comment');
     try {
       if (!req.user) throw new Error('Unauthorized');
 
@@ -30,6 +33,7 @@ export const InteractionController = {
   },
 
   async getNotifications(req: Request, res: Response, next: NextFunction) {
+    logger.debug({ userId: req.user?.id }, 'InteractionController.getNotifications: Fetching notifications');
     try {
       if (!req.user) throw new Error('Unauthorized');
 
@@ -41,6 +45,7 @@ export const InteractionController = {
   },
 
   async markNotificationRead(req: Request, res: Response, next: NextFunction) {
+    logger.info({ notificationId: req.params.id, userId: req.user?.id }, 'InteractionController.markNotificationRead: Marking as read');
     try {
       if (!req.user) throw new Error('Unauthorized');
 

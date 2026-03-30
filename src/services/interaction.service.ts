@@ -1,5 +1,6 @@
 import { LikeRepository } from '../repositories/like.repository.js';
 import { CommentRepository } from '../repositories/comment.repository.js';
+import { logger } from '../utils/logger.js';
 import { NotificationRepository } from '../repositories/notification.repository.js';
 import { SnippetRepository } from '../repositories/snippet.repository.js';
 import { NotificationType } from '@prisma/client';
@@ -7,7 +8,10 @@ import { NotificationType } from '@prisma/client';
 export const InteractionService = {
   async toggleLike(userId: string, snippetId: string) {
     const snippet = await SnippetRepository.findById(snippetId);
-    if (!snippet) throw new Error('Snippet not found');
+    if (!snippet) {
+      logger.warn({ snippetId }, 'InteractionService.toggleLike: Snippet not found');
+      throw new Error('Snippet not found');
+    }
 
     const existingLike = await LikeRepository.find(userId, snippetId);
 
@@ -19,6 +23,7 @@ export const InteractionService = {
 
       // Create notification
       if (snippet.authorId !== userId) {
+        logger.debug({ recipientId: snippet.authorId, actorId: userId }, 'InteractionService.toggleLike: Creating notification');
         await NotificationRepository.create({
           recipientId: snippet.authorId,
           actorId: userId,
@@ -37,7 +42,10 @@ export const InteractionService = {
     parentCommentId?: string;
   }) {
     const snippet = await SnippetRepository.findById(data.snippetId);
-    if (!snippet) throw new Error('Snippet not found');
+    if (!snippet) {
+      logger.warn({ snippetId: data.snippetId }, 'InteractionService.addComment: Snippet not found');
+      throw new Error('Snippet not found');
+    }
 
     const comment = await CommentRepository.create(data);
 

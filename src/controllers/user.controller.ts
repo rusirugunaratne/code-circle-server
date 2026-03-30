@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger.js';
 import { prisma } from '../config/prisma.js';
 
 export const UserController = {
   listAll: async (req: Request, res: Response, next: NextFunction) => {
+    logger.debug('UserController.listAll: Listing all users');
     try {
       const users = await prisma.user.findMany({
         select: {

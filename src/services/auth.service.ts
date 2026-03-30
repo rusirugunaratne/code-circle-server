@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { logger } from '../utils/logger.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import { RefreshTokenRepository } from '../repositories/refreshToken.repository.js';
 import { hashPassword, comparePassword } from '../utils/password.js';
@@ -7,11 +8,18 @@ import { env } from '../config/env.js';
 
 export const AuthService = {
   async register(data: { email: string; username: string; password: string }) {
+    logger.debug({ email: data.email }, 'AuthService.register: Checking for existing user');
     const existingUser = await UserRepository.findByEmail(data.email);
-    if (existingUser) throw new Error('Email already in use');
+    if (existingUser) {
+      logger.warn({ email: data.email }, 'AuthService.register: Email already in use');
+      throw new Error('Email already in use');
+    }
 
     const usernameTaken = await UserRepository.findByUsername(data.username);
-    if (usernameTaken) throw new Error('Username already taken');
+    if (usernameTaken) {
+      logger.warn({ username: data.username }, 'AuthService.register: Username already taken');
+      throw new Error('Username already taken');
+    }
 
     const passwordHash = await hashPassword(data.password);
     const user = await UserRepository.create({
@@ -29,7 +37,10 @@ export const AuthService = {
     if (!user) throw new Error('Invalid credentials');
 
     const isPasswordValid = await comparePassword(data.password, user.passwordHash);
-    if (!isPasswordValid) throw new Error('Invalid credentials');
+    if (!isPasswordValid) {
+      logger.warn({ email: data.email }, 'AuthService.login: Invalid password');
+      throw new Error('Invalid credentials');
+    }
 
     const tokens = await this.generateTokens(user.id, user.role);
     return { user: this.formatUser(user), ...tokens };

@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger.js';
 import { AuthService } from '../services/auth.service.js';
 import { env } from '../config/env.js';
 import { RegisterInput, LoginInput } from '../schemas/auth.schema.js';
 
 export const AuthController = {
   async register(req: Request<{}, {}, RegisterInput>, res: Response, next: NextFunction) {
+    logger.info({ email: req.body.email }, 'AuthController.register: Attempting to register user');
     try {
       const result = await AuthService.register(req.body);
       res.cookie('refreshToken', result.refreshToken, {
@@ -23,6 +25,7 @@ export const AuthController = {
   },
 
   async login(req: Request<{}, {}, LoginInput>, res: Response, next: NextFunction) {
+    logger.info({ email: req.body.email }, 'AuthController.login: Attempting to login user');
     try {
       const result = await AuthService.login(req.body);
       res.cookie('refreshToken', result.refreshToken, {
@@ -41,6 +44,7 @@ export const AuthController = {
   },
 
   async refresh(req: Request, res: Response, next: NextFunction) {
+    logger.debug('AuthController.refresh: Refreshing token');
     try {
       const { refreshToken } = req.cookies;
       if (!refreshToken) throw new Error('No refresh token provided');
@@ -62,6 +66,7 @@ export const AuthController = {
   },
 
   async logout(req: Request, res: Response, next: NextFunction) {
+    logger.info('AuthController.logout: Logging out user');
     try {
       const { refreshToken } = req.cookies;
       if (refreshToken) {
